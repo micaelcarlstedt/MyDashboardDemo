@@ -37,6 +37,18 @@ namespace MyDashboardDemo.App
         /// session.  This will be null the first time a page is visited.</param>
         protected override void LoadState(Object navigationParameter, Dictionary<String, Object> pageState)
         {
+            // TODO: Restore session state
+            if (pageState != null && pageState.ContainsKey("greetingOutputText"))
+            {
+                greetingOutput.Text = pageState["greetingOutputText"].ToString();
+            }
+
+            // TODO: Restore app data
+            Windows.Storage.ApplicationDataContainer roamingSettings = Windows.Storage.ApplicationData.Current.RoamingSettings;
+            if (roamingSettings.Values.ContainsKey("userName"))
+            {
+                nameInput.Text = roamingSettings.Values["userName"].ToString();
+            }
         }
 
         /// <summary>
@@ -47,11 +59,21 @@ namespace MyDashboardDemo.App
         /// <param name="pageState">An empty dictionary to be populated with serializable state.</param>
         protected override void SaveState(Dictionary<String, Object> pageState)
         {
+            pageState["greetingOutputText"] = greetingOutput.Text;
         }
 
-        private void Button_Click_1(object sender, RoutedEventArgs e)
+        private void Button_Click(object sender, RoutedEventArgs e)
         {
             greetingOutput.Text = string.Format("Hello, {0}!", nameInput.Text);
+        }
+
+        private void nameInput_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            // Our applicationdata needs to be stored as it changes.
+            Windows.Storage.ApplicationDataContainer roamingSettings =
+                Windows.Storage.ApplicationData.Current.RoamingSettings;
+            roamingSettings.Values["userName"] = nameInput.Text;
+
         }
     }
 }
