@@ -58,6 +58,24 @@
                 <TextBlock x:Name="greetingOutput"/>
             </StackPanel>
 
+            <StackPanel Grid.Row="0" Grid.Column="1"  Margin="120,30,0,0">
+                <StackPanel Orientation="Horizontal" Margin="0,20,0,20">
+                    <Grid x:Name="Output" 
+                          HorizontalAlignment="Left" 
+                          VerticalAlignment="Top" 
+                          Grid.Row="1">
+                        <Image x:Name="CapturedPhoto" 
+                               HorizontalAlignment="Left" 
+                               VerticalAlignment="Top" 
+                               MaxWidth="392" 
+                               Stretch="Fill" />
+                    </Grid>
+                    <StackPanel>
+                        <Button Content="Take Picture!" Click="SnapPicture"/>
+                    </StackPanel>
+                </StackPanel>
+            </StackPanel>
+            
         </Grid>
         
         <VisualStateManager.VisualStateGroups>
