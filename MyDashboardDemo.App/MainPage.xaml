@@ -71,7 +71,8 @@
                                Stretch="Fill" />
                     </Grid>
                     <StackPanel>
-                        <Button Content="Take Picture!" Click="SnapPicture"/>
+                        <Button Content="Take Picture" Click="TakePicture"/>
+                        <Button Content="Select Picture" Click="SelectPicture"/>
                     </StackPanel>
                 </StackPanel>
             </StackPanel>

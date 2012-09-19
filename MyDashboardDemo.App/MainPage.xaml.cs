@@ -8,6 +8,7 @@ using Windows.Foundation;
 using Windows.Foundation.Collections;
 using Windows.Media.Capture;
 using Windows.Storage;
+using Windows.Storage.Pickers;
 using Windows.Storage.Streams;
 using Windows.UI.Popups;
 using Windows.UI.Xaml;
@@ -30,7 +31,7 @@ namespace MyDashboardDemo.App
     {
         private IPropertySet appSettings;
         private const string userNameKey = "username";
-        private const string photoKey = "photo";
+        private const string pictureKey = "photo";
         
         public MainPage()
         {
@@ -59,12 +60,12 @@ namespace MyDashboardDemo.App
                 nameInput.Text = appSettings[userNameKey].ToString();
             }
 
-            if (appSettings.ContainsKey(photoKey))
+            if (appSettings.ContainsKey(pictureKey))
             {
                 object filePath;
-                if (appSettings.TryGetValue(photoKey, out filePath) && filePath.ToString() != "")
+                if (appSettings.TryGetValue(pictureKey, out filePath) && filePath.ToString() != "")
                 {
-                    await ReloadPhoto(filePath.ToString());
+                    await ReloadPictureFromAppSettings(filePath.ToString());
                 }
             }
         }
@@ -95,28 +96,35 @@ namespace MyDashboardDemo.App
         {
         }
 
-        private async void SnapPicture(object sender, RoutedEventArgs e)
-        {
 
+        private async void SelectPicture(object sender, RoutedEventArgs e)
+        {
+            StorageFile picture = await SelectPicture();
+            if (picture != null)
+            {
+                await UsePicture(picture);
+            }
+        }
+
+        private async Task<StorageFile> SelectPicture()
+        {
+            FileOpenPicker openPicker = new FileOpenPicker();
+            openPicker.ViewMode = PickerViewMode.Thumbnail;
+            openPicker.SuggestedStartLocation = PickerLocationId.PicturesLibrary;
+            openPicker.FileTypeFilter.Add(".jpg");
+            openPicker.FileTypeFilter.Add(".jpeg");
+            openPicker.FileTypeFilter.Add(".png");
+            return await openPicker.PickSingleFileAsync();
+        }
+
+        private async void TakePicture(object sender, RoutedEventArgs e)
+        {
             try
             {
-                // Using Windows.Media.Capture.CameraCaptureUI API to capture a photo
-                CameraCaptureUI dialog = new CameraCaptureUI();
-                Size aspectRatio = new Size(16, 9);
-                dialog.PhotoSettings.CroppedAspectRatio = aspectRatio;
-
-                StorageFile file = await dialog.CaptureFileAsync(CameraCaptureUIMode.Photo);
-                if (file != null)
+                StorageFile picture = await CapturePicture();
+                if (picture != null)
                 {
-                    BitmapImage bitmapImage = new BitmapImage();
-                    using (IRandomAccessStream fileStream = await file.OpenAsync(FileAccessMode.Read))
-                    {
-                        bitmapImage.SetSource(fileStream);
-                    }
-                    CapturedPhoto.Source = bitmapImage;
-
-                    // TODO: Store the file path in Application Data
-                    appSettings[photoKey] = file.Path;
+                    await UsePicture(picture);
                 }
                 else
                 {
@@ -129,7 +137,30 @@ namespace MyDashboardDemo.App
             }
         }
 
-        private async Task ReloadPhoto(String filePath)
+        private async Task UsePicture(StorageFile file)
+        {
+            BitmapImage bitmapImage = new BitmapImage();
+            using (IRandomAccessStream fileStream = await file.OpenAsync(FileAccessMode.Read))
+            {
+                bitmapImage.SetSource(fileStream);
+            }
+            CapturedPhoto.Source = bitmapImage;
+
+            // TODO: Store the file path in Application Data
+            appSettings[pictureKey] = file.Path;
+        }
+
+        private async Task<StorageFile> CapturePicture()
+        {
+            // Using Windows.Media.Capture.CameraCaptureUI API to capture a photo
+            CameraCaptureUI dialog = new CameraCaptureUI();
+            Size aspectRatio = new Size(16, 9);
+            dialog.PhotoSettings.CroppedAspectRatio = aspectRatio;
+
+            return await dialog.CaptureFileAsync(CameraCaptureUIMode.Photo);
+        }
+
+        private async Task ReloadPictureFromAppSettings(String filePath)
         {
             try
             {
@@ -143,7 +174,7 @@ namespace MyDashboardDemo.App
             }
             catch (Exception ex)
             {
-                appSettings.Remove(photoKey);
+                appSettings.Remove(pictureKey);
                 NotifyUser(ex.Message);
             }
         }
