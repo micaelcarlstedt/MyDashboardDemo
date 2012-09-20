@@ -30,6 +30,7 @@ namespace MyDashboardDemo.App
     public sealed partial class MainPage : MyDashboardDemo.App.Common.LayoutAwarePage
     {
         private IPropertySet appSettings;
+        private static MainPage _current;
         private const string userNameKey = "username";
         private const string pictureKey = "photo";
         
@@ -37,6 +38,8 @@ namespace MyDashboardDemo.App
         {
             this.InitializeComponent();
             appSettings = ApplicationData.Current.RoamingSettings.Values;
+
+            _current = this;
         }
 
         /// <summary>
@@ -187,6 +190,18 @@ namespace MyDashboardDemo.App
             
             await md.ShowAsync();
 
+        }
+
+        public void ProcessQueryText(string queryText)
+        {
+            var message = string.Format("Someone is searching this app for : \"{0}\"", queryText);
+            NotifyUser(message);
+        }
+
+
+        public static MainPage Current
+        {
+            get { return _current; }
         }
     }
 }

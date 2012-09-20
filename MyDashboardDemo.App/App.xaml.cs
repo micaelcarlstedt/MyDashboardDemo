@@ -2,9 +2,11 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using MyDashboardDemo.App.Common;
 using Windows.ApplicationModel;
 using Windows.ApplicationModel.Activation;
+using Windows.ApplicationModel.Search;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
 using Windows.UI.Xaml;
@@ -89,6 +91,57 @@ namespace MyDashboardDemo.App
             //TODO: Save application state and stop any background activity
             await SuspensionManager.SaveAsync();
             deferral.Complete();
+        }
+
+
+        protected override void OnWindowCreated(WindowCreatedEventArgs args)
+        {
+            // Register QuerySubmitted handler for the window at window creation time and only registered once
+            // so that the app can receive user queries at any time.
+            SearchPane.GetForCurrentView().QuerySubmitted += new TypedEventHandler<SearchPane, SearchPaneQuerySubmittedEventArgs>(OnQuerySubmitted);
+        }
+
+        private void OnQuerySubmitted(object sender, SearchPaneQuerySubmittedEventArgs args)
+        {
+            if (MainPage.Current != null)
+            {
+                MainPage.Current.ProcessQueryText(args.QueryText);
+            }
+        }
+
+
+
+        async private Task EnsureMainPageActivatedAsync(IActivatedEventArgs args)
+        {   
+            if (args.PreviousExecutionState == ApplicationExecutionState.Terminated)
+            {
+                // Do an asynchronous restore
+                await SuspensionManager.RestoreAsync();
+
+            }
+
+            if (Window.Current.Content == null)
+            {
+                var rootFrame = new Frame();
+                rootFrame.Navigate(typeof(MainPage));
+                Window.Current.Content = rootFrame;
+            }
+
+            Window.Current.Activate();
+        }
+
+        async protected override void OnSearchActivated(SearchActivatedEventArgs args)
+        {
+            //await EnsureMainPageActivatedAsync(args);
+            if (args.QueryText == "")
+            {
+                // navigate to landing page.
+            }
+            else
+            {
+                // display search results.
+                MainPage.Current.ProcessQueryText(args.QueryText);
+            }
         }
     }
 }
