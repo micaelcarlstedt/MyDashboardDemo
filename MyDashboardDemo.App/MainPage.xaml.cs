@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using MyDashboardDemo.App.Common;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
 using Windows.Media.Capture;
@@ -53,23 +54,26 @@ namespace MyDashboardDemo.App
         /// session.  This will be null the first time a page is visited.</param>
         protected async override void LoadState(Object navigationParameter, Dictionary<String, Object> pageState)
         {
-            if (pageState != null && pageState.ContainsKey("greetingOutputText"))
+            // GreetingsText is stored in PageState and is hence only stored in this application session
+            object greetingsText;
+            if (pageState != null && pageState.TryGetValue("greetingOutputText", out greetingsText))
             {
-                greetingOutput.Text = pageState["greetingOutputText"].ToString();
+                greetingOutput.Text = greetingsText.ToString();
             }
 
-            if (appSettings.ContainsKey(userNameKey))
+            //UserName is stored in AppData and is hence persisted between sessions
+            object userName;
+            if (appSettings.TryGetValue(userNameKey, out userName))
             {
-                nameInput.Text = appSettings[userNameKey].ToString();
+                nameInput.Text = userName.ToString();
             }
 
-            if (appSettings.ContainsKey(pictureKey))
+
+            //The filePath to the used picture is stored in AppData and is hence persisted between sessions
+            object filePath;
+            if (appSettings.TryGetValue(pictureKey, out filePath) && !string.IsNullOrWhiteSpace(filePath.ToString()))
             {
-                object filePath;
-                if (appSettings.TryGetValue(pictureKey, out filePath) && filePath.ToString() != "")
-                {
-                    await ReloadPictureFromAppSettings(filePath.ToString());
-                }
+                await ReloadPictureFromAppSettings(filePath.ToString());
             }
         }
 
@@ -113,7 +117,7 @@ namespace MyDashboardDemo.App
         {
             FileOpenPicker openPicker = new FileOpenPicker();
             openPicker.ViewMode = PickerViewMode.Thumbnail;
-            openPicker.SuggestedStartLocation = PickerLocationId.PicturesLibrary;
+            openPicker.SuggestedStartLocation = PickerLocationId.ComputerFolder;
             openPicker.FileTypeFilter.Add(".jpg");
             openPicker.FileTypeFilter.Add(".jpeg");
             openPicker.FileTypeFilter.Add(".png");
@@ -185,8 +189,8 @@ namespace MyDashboardDemo.App
         private async void NotifyUser(string message)
         {
             MessageDialog md = new MessageDialog(message, "Information");
-            
-            //md.Commands.Add( new UICommand("OK", new UICommandInvokedHandler((cmd) => result = true)));
+
+            //md.Commands.Add(new UICommand("OK", new UICommandInvokedHandler((cmd) => result = true)));
             
             await md.ShowAsync();
 

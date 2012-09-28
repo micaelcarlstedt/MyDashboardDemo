@@ -88,8 +88,10 @@ namespace MyDashboardDemo.App
         private async void OnSuspending(object sender, SuspendingEventArgs e)
         {
             var deferral = e.SuspendingOperation.GetDeferral();
+
             //TODO: Save application state and stop any background activity
             await SuspensionManager.SaveAsync();
+
             deferral.Complete();
         }
 
@@ -140,7 +142,10 @@ namespace MyDashboardDemo.App
             else
             {
                 // display search results.
-                MainPage.Current.ProcessQueryText(args.QueryText);
+                if (MainPage.Current != null)
+                {
+                    MainPage.Current.ProcessQueryText(args.QueryText);
+                }
             }
         }
     }
